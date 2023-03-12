@@ -127,6 +127,23 @@
                     "--seed", "2",
                     "--video_log_freq", "-1"
                     ],
+        },
+        {
+            "name": "Hw2-3 Lunarlanding nn-baseline",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/hw2/cs285/scripts/run_hw2.py",
+            "console": "integratedTerminal",
+            "args": [
+                    "--env_name", "LunarLanderContinuous-v2",
+                    "--exp_name", "Hw2-3_debug",
+                    "-n", "100",
+                    "-b", "1000",
+                    "--nn_baseline", 
+                    "-rtg",
+                    "--seed", "2",
+                    "--video_log_freq", "-1"
+                    ],
         }
     ]
 }

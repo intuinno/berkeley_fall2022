@@ -166,7 +166,7 @@ class MLPPolicyPG(MLPPolicy):
             self.baseline_optimizer.zero_grad()
             targets = ptu.from_numpy(q_values)
             targets = (targets - targets.mean()) / targets.std()
-            value_pred = self.baseline(observations)
+            value_pred = self.baseline(observations).flatten()
             baseline_loss = self.baseline_loss(targets, value_pred)
             baseline_loss.backward()
             self.baseline_optimizer.step()
