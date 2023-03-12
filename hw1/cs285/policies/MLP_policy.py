@@ -79,9 +79,16 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             observation = obs
         else:
             observation = obs[None]
+            
+        observation = torch.Tensor(observation).to(ptu.device)
 
         # TODO return the action that the policy prescribes
-        raise NotImplementedError
+        if self.discrete:
+            logits = self.logits_na(observation)
+            return distributions.Categorical(logits=logits).sample().numpy()
+        else:
+            means = self.mean_net(observation)
+            return distributions.Normal(loc=means, scale=self.logstd.exp()).sample().numpy()
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
@@ -93,7 +100,13 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor) -> Any:
-        raise NotImplementedError
+        if self.discrete:
+            logits = self.logits_na(observation)
+            return logits
+        else: 
+            means = self.mean_net(observation)
+            random_noise = distributions.Normal(loc=torch.zeros_like(means), scale=torch.ones_like(self.logstd)).sample()
+            return random_noise * self.logstd.exp() + means 
 
 
 #####################################################
@@ -109,7 +122,13 @@ class MLPPolicySL(MLPPolicy):
             adv_n=None, acs_labels_na=None, qvals=None
     ):
         # TODO: update the policy and return the loss
-        loss = TODO
+        obs = torch.Tensor(observations).to(ptu.device)
+        acs = torch.Tensor(actions).to(ptu.device)
+        pred_acs = self.forward(obs)
+        loss = self.loss(pred_acs, acs)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),

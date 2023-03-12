@@ -86,8 +86,20 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
     # query the policy with observation(s) to get selected action(s)
     def get_action(self, obs: np.ndarray) -> np.ndarray:
-        # TODO: get this from HW1
+        if len(obs.shape) > 1:
+            observation = obs
+        else:
+            observation = obs[None]
+            
+        observation = torch.Tensor(observation).to(ptu.device)
 
+        if self.discrete:
+            logits = self.logits_na(observation)
+            return distributions.Categorical(logits=logits).sample().numpy()
+        else:
+            means = self.mean_net(observation)
+            return distributions.Normal(loc=means, scale=self.logstd.exp()).sample().numpy()
+        
     # update/train this policy
     def update(self, observations, actions, **kwargs):
         raise NotImplementedError
@@ -134,7 +146,12 @@ class MLPPolicyPG(MLPPolicy):
         # HINT2: you will want to use the `log_prob` method on the distribution returned
             # by the `forward` method
 
-        TODO
+        self.optimizer.zero_grad()
+        
+        pred = self.forward(observations).log_prob(actions)
+        loss = (- pred * advantages).mean()
+        loss.backward()
+        self.optimizer.step()
 
         if self.nn_baseline:
             ## TODO: update the neural network baseline using the q_values as
@@ -144,7 +161,13 @@ class MLPPolicyPG(MLPPolicy):
             ## Note: You will need to convert the targets into a tensor using
                 ## ptu.from_numpy before using it in the loss
 
-            TODO
+            self.baseline_optimizer.zero_grad()
+            targets = ptu.from_numpy(q_values)
+            targets = (targets - targets.mean()) / targets.std()
+            value_pred = self.baseline(observations)
+            baseline_loss = self.baseline_loss(targets, value_pred)
+            baseline_loss.backward()
+            self.baseline_optimizer.step()
 
         train_log = {
             'Training Loss': ptu.to_numpy(loss),
