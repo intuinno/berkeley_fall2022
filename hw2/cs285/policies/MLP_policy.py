@@ -91,15 +91,17 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         else:
             observation = obs[None]
             
-        observation = torch.Tensor(observation).to(ptu.device)
+        observation = ptu.from_numpy(observation)
 
         if self.discrete:
             logits = self.logits_na(observation)
-            return distributions.Categorical(logits=logits).sample().numpy()
+            action = distributions.Categorical(logits=logits).sample()
         else:
             means = self.mean_net(observation)
-            return distributions.Normal(loc=means, scale=self.logstd.exp()).sample().numpy()
+            action = distributions.Normal(loc=means, scale=self.logstd.exp()).sample()
         
+        return ptu.to_numpy(action)
+    
     # update/train this policy
     def update(self, observations, actions, **kwargs):
         raise NotImplementedError
