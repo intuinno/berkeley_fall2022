@@ -151,6 +151,8 @@ class MLPPolicyPG(MLPPolicy):
         self.optimizer.zero_grad()
         
         pred = self.forward(observations).log_prob(actions)
+        if len(pred.shape) == 2:
+            pred = pred.sum(dim=1)
         loss = (- pred * advantages).mean()
         loss.backward()
         self.optimizer.step()

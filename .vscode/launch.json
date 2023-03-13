@@ -90,7 +90,7 @@
                     "-n", "100",
                     "-b", "1000",
                     "-dsa", 
-                    "--video_log_freq", "20",
+                    // "--video_log_freq", "20",
                     "--seed", "2"
                     ],
         },
@@ -129,6 +129,23 @@
                     ],
         },
         {
+            "name": "Hw2-1 Inverted Pendulum",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/hw2/cs285/scripts/run_hw2.py",
+            "console": "integratedTerminal",
+            "args": [
+                    "--env_name", "CartPole-v0",
+                    "--exp_name", "q1_sb_rtg_dsa",
+                    "-n", "100",
+                    "-b", "1000",
+                    // "-dsa", 
+                    "-rtg",
+                    "--seed", "2",
+                    "--video_log_freq", "-1"
+                    ], 
+        }
+        {
             "name": "Hw2-3 Lunarlanding nn-baseline",
             "type": "python",
             "request": "launch",
@@ -143,6 +160,99 @@
                     "-rtg",
                     "--seed", "2",
                     "--video_log_freq", "-1"
+                    ],
+        },
+        {
+            "name": "Hw2-5 GAE debug cartpole",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/hw2/cs285/scripts/run_hw2.py",
+            "console": "integratedTerminal",
+            "args": [
+                    "--env_name", "CartPole-v0",
+                    "--exp_name", "gae_debug_cartpole_gae0.8",
+                    "-n", "100",
+                    "-b", "1000",
+                    "-rtg",
+                    "--discount", "0.99",
+                    "--nn_baseline",
+                    "--gae_lambda", "0.8"
+                    ],
+        },
+        {
+            "name": "Hw2-5 GAE 0.8 debug inverted pendulum",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/hw2/cs285/scripts/run_hw2.py",
+            "console": "integratedTerminal",
+            "args": [
+                    "--env_name", "InvertedPendulum-v4",
+                    "--exp_name", "gae_debug_IP_gae0.8",
+                    "-n", "100",
+                    "-rtg",
+                    "--discount", "1",
+                    "--nn_baseline",
+                    "--gae_lambda", "0.8"
+                    ],
+        },
+        {
+            "name": "Hw2-5 GAE1.0 debug inverted pendulum ",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/hw2/cs285/scripts/run_hw2.py",
+            "console": "integratedTerminal",
+            "args": [
+                    "--env_name", "InvertedPendulum-v4",
+                    "--exp_name", "gae_debug_IP_gae1.0",
+                    "-n", "100",
+                    "-rtg",
+                    "--discount", "1",
+                    "--nn_baseline",
+                    "--gae_lambda", "1.0"
+                    ],
+        },
+        {
+            "name": "Hw2-5 GAE1.0 Hopper",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/hw2/cs285/scripts/run_hw2.py",
+            "console": "integratedTerminal",
+            "args": [
+                    "--env_name", "Hopper-v4",
+                    "--ep_len", "1000",
+                    "--exp_name", "q5_lambda1.0",
+                    "-n", "300",
+                    "-l", "2",
+                    "-s", "32",
+                    "-b", "2000",
+                    "-lr", "0.001",
+                    "-rtg",
+                    "--discount", "0.99",
+                    "--nn_baseline",
+                    "--action_noise_std", "0.5",
+                    "--gae_lambda", "1.0"
+                    ],
+        },
+        {
+            "name": "Hw2-5 GAE0.8 Hopper",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/hw2/cs285/scripts/run_hw2.py",
+            "console": "integratedTerminal",
+            "args": [
+                    "--env_name", "Hopper-v4",
+                    "--ep_len", "1000",
+                    "--exp_name", "q5_lambda0.8",
+                    "-n", "300",
+                    "-l", "2",
+                    "-s", "32",
+                    "-b", "2000",
+                    "-lr", "0.001",
+                    "-rtg",
+                    "--discount", "0.99",
+                    "--nn_baseline",
+                    "--action_noise_std", "0.5",
+                    "--gae_lambda", "0.8"
                     ],
         }
     ]
