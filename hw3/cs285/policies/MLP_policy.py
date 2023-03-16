@@ -86,8 +86,21 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
     # query the policy with observation(s) to get selected action(s)
     def get_action(self, obs: np.ndarray) -> np.ndarray:
-        # TODO: get this from hw1 or hw2
-        return action
+        if len(obs.shape) > 1:
+            observation = obs
+        else:
+            observation = obs[None]
+            
+        observation = ptu.from_numpy(observation)
+
+        if self.discrete:
+            logits = self.logits_na(observation)
+            action = distributions.Categorical(logits=logits).sample()
+        else:
+            means = self.mean_net(observation)
+            action = distributions.Normal(loc=means, scale=self.logstd.exp()).sample()
+        
+        return ptu.to_numpy(action)
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
@@ -98,10 +111,23 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # through it. For example, you can return a torch.FloatTensor. You can also
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
-    def forward(self, observation: torch.FloatTensor):
-        # TODO: get this from hw1 or hw2
-        return action_distribution
+    # query the policy with observation(s) to get selected action(s)
+    def get_action(self, obs: np.ndarray) -> np.ndarray:
+        if len(obs.shape) > 1:
+            observation = obs
+        else:
+            observation = obs[None]
+            
+        observation = ptu.from_numpy(observation)
 
+        if self.discrete:
+            logits = self.logits_na(observation)
+            action = distributions.Categorical(logits=logits).sample()
+        else:
+            means = self.mean_net(observation)
+            action = distributions.Normal(loc=means, scale=self.logstd.exp()).sample()
+        
+        return ptu.to_numpy(action)
 
 #####################################################
 #####################################################

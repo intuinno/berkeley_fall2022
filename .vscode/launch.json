@@ -13,6 +13,16 @@
             "justMyCode": true
         },
         {
+            "name": "Hw3 dqn",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/hw3/cs285/scripts/run_hw3_dqn.py",
+            "console": "integratedTerminal",
+            "args": [
+                    "--env_name", "LunarLander-v3",
+                    ],
+        },
+        {
             "name": "Hw1: part1 Ant Dagger",
             "type": "python",
             "request": "launch",
