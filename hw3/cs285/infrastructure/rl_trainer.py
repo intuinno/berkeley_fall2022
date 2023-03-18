@@ -301,14 +301,14 @@ class RL_Trainer(object):
             envsteps_this_batch: the sum over the numbers of environment steps in paths
             train_video_paths: paths which also contain videos for visualization purposes
         """
-        if itr == 0 and load_initial_expertdata:
-            with open(load_initial_expertdata, 'rb') as f:
+        if itr == 0 and initial_expertdata:
+            with open(initial_expertdata, 'rb') as f:
                 paths = pickle.loads(f.read())
                 paths = paths
                 envsteps_this_batch = 0
         else:
             print("\nCollecting data to be used for training...")
-            paths, envsteps_this_batch = utils.sample_trajectories(self.env, collect_policy, batch_size, self.params['ep_len'])
+            paths, envsteps_this_batch = utils.sample_trajectories(self.env, collect_policy, num_transitions_to_sample, self.params['ep_len'])
 
         # collect more rollouts with the same policy, to be saved as videos in tensorboard
         # note: here, we collect MAX_NVIDEO rollouts, each of length MAX_VIDEO_LEN

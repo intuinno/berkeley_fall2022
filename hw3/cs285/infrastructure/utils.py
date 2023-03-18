@@ -83,8 +83,17 @@ def sample_trajectory(env, policy, max_path_length, render=False):
         # record result of taking that action
         steps += 1
         next_obs.append(ob)
-        rewards.appe
+        rewards.append(rew)
 
+        # TODO end the rollout if the rollout ended
+        # HINT: rollout can end due to done, or due to max_path_length
+        rollout_done = done or steps > max_path_length  # HINT: this is either 0 or 1
+        terminals.append(rollout_done)
+
+        if rollout_done:
+            break
+
+    return Path(obs, image_obs, acs, rewards, next_obs, terminals)
 
 def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length, render=False):
     """
