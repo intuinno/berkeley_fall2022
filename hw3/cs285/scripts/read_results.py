@@ -9,7 +9,7 @@ def get_section_results(file):
     Y = []
     for e in tf.train.summary_iterator(file):
         for v in e.summary.value:
-            if v.tag == 'TimeSinceStart':
+            if v.tag == 'Train_EnvstepsSoFar':
                 X.append(v.simple_value)
             elif v.tag == 'Train_AverageReturn':
                 Y.append(v.simple_value)
@@ -17,12 +17,14 @@ def get_section_results(file):
 
 def get_avg_returns(logdirs):
     avg_returns = []
+    time_steps = []
     for logdir in logdirs:
         eventfile = glob.glob(logdir)[0]
         X, Y = get_section_results(eventfile)
         avg_returns.append(Y)
+        time_steps.append(X)
         
-    return avg_returns    
+    return time_steps, avg_returns    
 
 if __name__ == '__main__':
     import glob
@@ -35,6 +37,6 @@ if __name__ == '__main__':
         double_dqn_logdirs.append(double_dqn)
         dqn_logdirs.append(dqn)
     
-    double_dqn_returns = get_avg_returns(double_dqn_logdirs)
-    dqn_returns = get_avg_returns(dqn_logdirs)        
+    ddqn_steps, double_dqn_returns = get_avg_returns(double_dqn_logdirs)
+    dqn_steps, dqn_returns = get_avg_returns(dqn_logdirs)        
 
