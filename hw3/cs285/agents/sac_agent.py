@@ -10,6 +10,8 @@ import gym
 from cs285.policies.sac_policy import MLPPolicySAC
 from cs285.critics.sac_critic import SACCritic
 import cs285.infrastructure.pytorch_util as ptu
+from cs285.infrastructure.sac_utils import soft_update_params
+import torch
 
 class SACAgent(BaseAgent):
     def __init__(self, env: gym.Env, agent_params):
@@ -51,6 +53,19 @@ class SACAgent(BaseAgent):
         # HINT: You need to use the entropy term (alpha)
         # 2. Get current Q estimates and calculate critic loss
         # 3. Optimize the critic  
+        action_distribution = self.actor.forward(next_ob_no)
+        sampled_action = action_distribution.sample()
+        q1_target_values, q2_target_values = self.critic_target.forward(next_ob_no, sampled_action)
+        min_q_target_values = torch.minimum(q1_target_values, q2_target_values)
+        entropy_term = - self.actor.alpha * action_distribution.log_prob(sampled_action)
+        target_q_values = re_n + self.gamma * (1 - terminal_n) * (min_q_target_values + entropy_term)
+        q1_values, q2_values = self.critic.forward(ob_no, ac_na)
+        q1_loss = self.critic.loss(target_q_values.detach(), q1_values)
+        q2_loss = self.critic.loss(target_q_values.detach(), q2_values)
+        critic_loss = q1_loss + q2_loss 
+        self.critic.optimizer.zero_grad()
+        critic_loss.backward()
+        self.critic.optimizer.step()        
         return critic_loss
 
     def train(self, ob_no, ac_na, re_n, next_ob_no, terminal_n):
@@ -58,20 +73,33 @@ class SACAgent(BaseAgent):
         # 1. Implement the following pseudocode:
         # for agent_params['num_critic_updates_per_agent_update'] steps,
         #     update the critic
+        ob_no = ptu.from_numpy(ob_no)
+        ac_na = ptu.from_numpy(ac_na)
+        re_n = ptu.from_numpy(re_n)
+        next_ob_no = ptu.from_numpy(next_ob_no)
+        terminal_n = ptu.from_numpy(terminal_n)
+
+        for i in range(self.agent_params['num_critic_updates_per_agent_update']):
+            critic_loss = self.update_critic(ob_no, ac_na, next_ob_no, re_n, terminal_n)
 
         # 2. Softly update the target every critic_target_update_frequency (HINT: look at sac_utils)
-
+        if self.training_step % self.critic_target_update_frequency == 0:
+            soft_update_params(self.critic, self.critic_target, self.critic_tau)
+            
         # 3. Implement following pseudocode:
         # If you need to update actor
         # for agent_params['num_actor_updates_per_agent_update'] steps,
         #     update the actor
+        if self.training_step % self.actor_update_frequency == 0:
+            for i in range(self.agent_params['num_actor_updates_per_agent_update']):
+                actor_loss, alpha_loss, temperature = self.actor.update(ob_no, self.critic)
 
         # 4. gather losses for logging
         loss = OrderedDict()
-        loss['Critic_Loss'] = TODO
-        loss['Actor_Loss'] = TODO
-        loss['Alpha_Loss'] = TODO
-        loss['Temperature'] = TODO
+        loss['Critic_Loss'] = critic_loss
+        loss['Actor_Loss'] = actor_loss
+        loss['Alpha_Loss'] = alpha_loss
+        loss['Temperature'] = temperature
 
         return loss
 
