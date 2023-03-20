@@ -19,7 +19,7 @@
             "program": "${workspaceFolder}/hw3/cs285/scripts/run_hw3_sac.py",
             "console": "integratedTerminal",
             "args": [
-                    "--env_name", "InvertedPendulum-v4",
+                    "--env_name", "HalfCheetah-v4",
                     "--ep_len", "1000",
                     "--discount", "0.99",
                     "--scalar_log_freq", "1000",

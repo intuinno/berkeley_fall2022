@@ -85,7 +85,7 @@ class MLPPolicySAC(MLPPolicy):
         sampled_action = action_distribution.sample()
         q1_values, q2_values = critic.forward(obs, sampled_action)
         min_q_values = torch.minimum(q1_values, q2_values)
-        entropy_term =  action_distribution.log_prob(sampled_action)
+        entropy_term =  action_distribution.log_prob(sampled_action).mean()
         actor_loss = min_q_values - self.alpha * entropy_term
         actor_loss = actor_loss.mean()
         self.optimizer.zero_grad()

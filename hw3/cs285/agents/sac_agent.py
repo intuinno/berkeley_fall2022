@@ -57,7 +57,7 @@ class SACAgent(BaseAgent):
         sampled_action = action_distribution.sample()
         q1_target_values, q2_target_values = self.critic_target.forward(next_ob_no, sampled_action)
         min_q_target_values = torch.minimum(q1_target_values, q2_target_values)
-        entropy_term = - self.actor.alpha * action_distribution.log_prob(sampled_action)
+        entropy_term = - self.actor.alpha * action_distribution.log_prob(sampled_action).mean()
         target_q_values = re_n + self.gamma * (1 - terminal_n) * (min_q_target_values + entropy_term)
         q1_values, q2_values = self.critic.forward(ob_no, ac_na)
         q1_loss = self.critic.loss(target_q_values.detach(), q1_values)
