@@ -53,12 +53,16 @@ class SACAgent(BaseAgent):
         # HINT: You need to use the entropy term (alpha)
         # 2. Get current Q estimates and calculate critic loss
         # 3. Optimize the critic  
-        action_distribution = self.actor.forward(next_ob_no)
-        sampled_action = action_distribution.sample()
+        ob_no = ptu.from_numpy(ob_no)
+        ac_na = ptu.from_numpy(ac_na)
+        re_n = ptu.from_numpy(re_n)
+        next_ob_no = ptu.from_numpy(next_ob_no)
+        terminal_n = ptu.from_numpy(terminal_n)
+        sampled_action, log_prob = self.actor.forward(next_ob_no)
         q1_target_values, q2_target_values = self.critic_target.forward(next_ob_no, sampled_action)
-        min_q_target_values = torch.minimum(q1_target_values, q2_target_values)
-        entropy_term = - self.actor.alpha * action_distribution.log_prob(sampled_action).mean()
-        target_q_values = re_n + self.gamma * (1 - terminal_n) * (min_q_target_values + entropy_term)
+        min_q_target_values = torch.min(q1_target_values, q2_target_values)
+        entropy_term = - self.actor.alpha * log_prob 
+        target_q_values = re_n + self.gamma * (1. - terminal_n) * (min_q_target_values + entropy_term)
         q1_values, q2_values = self.critic.forward(ob_no, ac_na)
         q1_loss = self.critic.loss(target_q_values.detach(), q1_values)
         q2_loss = self.critic.loss(target_q_values.detach(), q2_values)
@@ -73,11 +77,7 @@ class SACAgent(BaseAgent):
         # 1. Implement the following pseudocode:
         # for agent_params['num_critic_updates_per_agent_update'] steps,
         #     update the critic
-        ob_no = ptu.from_numpy(ob_no)
-        ac_na = ptu.from_numpy(ac_na)
-        re_n = ptu.from_numpy(re_n)
-        next_ob_no = ptu.from_numpy(next_ob_no)
-        terminal_n = ptu.from_numpy(terminal_n)
+
 
         for i in range(self.agent_params['num_critic_updates_per_agent_update']):
             critic_loss = self.update_critic(ob_no, ac_na, next_ob_no, re_n, terminal_n)
