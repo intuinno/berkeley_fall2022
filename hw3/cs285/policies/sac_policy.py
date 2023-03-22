@@ -30,7 +30,12 @@ class MLPPolicySAC(MLPPolicy):
         self.mean_log_std_net = ptu.build_mlp(input_size=self.ob_dim,
                                       output_size=self.ac_dim *2,
                                       n_layers=self.n_layers, size=self.size)
-        
+        self.mean_log_std_net.to(ptu.device)
+        self.optimizer = optim.Adam(
+                self.mean_log_std_net.parameters(),
+                self.learning_rate
+            )
+
         self.log_alpha = torch.tensor(np.log(self.init_temperature)).to(ptu.device)
         self.log_alpha.requires_grad = True
         self.log_alpha_optimizer = torch.optim.Adam([self.log_alpha], lr=self.learning_rate)
@@ -53,14 +58,16 @@ class MLPPolicySAC(MLPPolicy):
             observation = obs[None]
         
         observation = ptu.from_numpy(observation)
-        batch_mean = self.mean_net(observation)
-        batch_scale = torch.clamp(self.logstd, self.log_std_bounds[0], self.log_std_bounds[1])
+        # batch_mean = self.mean_net(observation)
+        out = self.mean_log_std_net(observation)
+        batch_mean, batch_scale = torch.split(out, self.ac_dim, dim=1)
+        batch_scale = torch.clamp(batch_scale, self.log_std_bounds[0], self.log_std_bounds[1])
         
         if sample:
             batch_scale = torch.exp(self.logstd)
             action = sac_utils.SquashedNormal(
                 batch_mean,
-                batch_scale,
+                batch_scale.exp(),
             ).sample()
             return ptu.to_numpy(action)
         else:
@@ -76,12 +83,12 @@ class MLPPolicySAC(MLPPolicy):
         # HINT: 
         # You will need to clip log values
         # You will need SquashedNormal from sac_utils file 
-        batch_mean = self.mean_net(observation)
-        batch_scale = torch.clamp(self.logstd, self.log_std_bounds[0], self.log_std_bounds[1])
-        batch_scale = torch.exp(self.logstd)
+        out = self.mean_log_std_net(observation)
+        batch_mean, batch_scale = torch.split(out, self.ac_dim, dim=1)
+        batch_scale = torch.clamp(batch_scale, self.log_std_bounds[0], self.log_std_bounds[1])
         action_distribution = sac_utils.SquashedNormal(
             batch_mean,
-            batch_scale
+            batch_scale.exp()
         )
         action = action_distribution.rsample()
         log_prob = action_distribution.log_prob(action).sum(dim=1)
@@ -93,7 +100,7 @@ class MLPPolicySAC(MLPPolicy):
         obs = ptu.from_numpy(obs)
         sampled_action, log_prob = self.forward(obs)
         q1_values, q2_values = critic.forward(obs, sampled_action)
-        min_q_values = torch.minimum(q1_values, q2_values)
+        min_q_values = torch.min(q1_values, q2_values)
         actor_loss = - min_q_values + self.alpha * log_prob
         actor_loss = actor_loss.mean()
         self.optimizer.zero_grad()

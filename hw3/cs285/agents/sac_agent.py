@@ -60,12 +60,14 @@ class SACAgent(BaseAgent):
         terminal_n = ptu.from_numpy(terminal_n)
         sampled_action, log_prob = self.actor.forward(next_ob_no)
         q1_target_values, q2_target_values = self.critic_target.forward(next_ob_no, sampled_action)
-        min_q_target_values = torch.min(q1_target_values, q2_target_values)
+        min_q_target_values = torch.min(q1_target_values, q2_target_values).squeeze()
+        # log_prob = log_prob.unsqueeze(-1)
         entropy_term = - self.actor.alpha * log_prob 
+        
         target_q_values = re_n + self.gamma * (1. - terminal_n) * (min_q_target_values + entropy_term)
         q1_values, q2_values = self.critic.forward(ob_no, ac_na)
-        q1_loss = self.critic.loss(target_q_values.detach(), q1_values)
-        q2_loss = self.critic.loss(target_q_values.detach(), q2_values)
+        q1_loss = self.critic.loss(q1_values.squeeze(), target_q_values.detach())
+        q2_loss = self.critic.loss(q2_values.squeeze(), target_q_values.detach())
         critic_loss = q1_loss + q2_loss 
         self.critic.optimizer.zero_grad()
         critic_loss.backward()
