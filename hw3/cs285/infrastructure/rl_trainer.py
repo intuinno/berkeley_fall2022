@@ -319,7 +319,6 @@ class RL_Trainer(object):
 
         return paths, envsteps_this_batch, train_video_paths
 
-        return paths, envsteps_this_batch, train_video_paths
 
     def train_agent(self):
         # print('\nTraining agent using sampled data from replay buffer...')
