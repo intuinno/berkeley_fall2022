@@ -54,7 +54,7 @@ class MPCPolicy(BasePolicy):
             # dimensions (num_sequences, horizon, self.ac_dim) in the range
             # [self.low, self.high]
             random_action_sequences = np.random.uniform(self.low, self.high, 
-                                                                      size=[num_sequences, horizon, self.ac_dim])
+                                                        size=[num_sequences, horizon, self.ac_dim])
             return random_action_sequences
         elif self.sample_strategy == 'cem':
             # TODO(Q5): Implement action selection using CEM.
@@ -62,6 +62,25 @@ class MPCPolicy(BasePolicy):
             # iteratively as described in Section 3.3, "Iterative Random-Shooting with Refinement" of
             # https://arxiv.org/pdf/1909.11652.pdf 
             for i in range(self.cem_iterations):
+                if i == 0:
+                    action_sequences = np.random.uniform(self.low, self.high, 
+                                                        size=[num_sequences, horizon, self.ac_dim])
+                else:
+                    action_sequences = np.random.normal(loc=elite_mean, scale=np.sqrt(elite_var), size=[num_sequences, horizon, self.ac_dim] )
+                predicted_rewards = self.evaluate_candidate_sequences(action_sequences, obs)
+
+                elite_action_indices = np.argpartition(predicted_rewards, -self.cem_num_elites)[-self.cem_num_elites:]
+                elite_action_sequences = action_sequences[elite_action_indices]
+                new_elite_mean = np.mean(elite_action_sequences, axis=0)
+                new_elite_var = np.var(elite_action_sequences, axis=0)    
+                
+                if i == 0:
+                    elite_mean = new_elite_mean
+                    elite_var = new_elite_var
+                else: 
+                    elite_mean = self.cem_alpha * new_elite_mean + (1-self.cem_alpha) * elite_mean
+                    elite_var = self.cem_alpha * new_elite_var + (1-self.cem_alpha) * elite_var
+
                 # - Sample candidate sequences from a Gaussian with the current 
                 #   elite mean and variance
                 #     (Hint: remember that for the first iteration, we instead sample
@@ -70,10 +89,10 @@ class MPCPolicy(BasePolicy):
                 #     (Hint: what existing function can we use to compute rewards for
                 #      our candidate sequences in order to rank them?)
                 # - Update the elite mean and variance
-                pass
 
             # TODO(Q5): Set `cem_action` to the appropriate action chosen by CEM
-            cem_action = None
+            best_action = np.argmax(predicted_rewards)
+            cem_action = action_sequences[best_action]
 
             return cem_action[None]
         else:
