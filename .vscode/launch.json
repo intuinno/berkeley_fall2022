@@ -32,7 +32,7 @@
                     "--sac_learning_rate", "0.0003", 
                     "--sac_init_temperature", "0.1", 
                     "--sac_n_iter", "1000",
-                    "--mbpo_rollout_length", "1", 
+                    "--mbpo_rollout_length", "0", 
                     "--mpc_horizon", "15", 
                     "--num_agent_train_steps_per_iter", "1500",
                     "--video_log_freq", "-1", 

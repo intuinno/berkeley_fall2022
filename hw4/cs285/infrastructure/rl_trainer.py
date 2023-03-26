@@ -166,7 +166,7 @@ class RL_Trainer(object):
                         # HINT: Look at collect_model_trajectory and add_to_replay_buffer from MBPOAgent.
                         # HINT: Use the from_model argument to ensure the paths are added to the correct buffer.
                         path = self.agent.collect_model_trajectory(self.params['mbpo_rollout_length'])
-                        self.agent.add_to_replay_buffer(paths, from_model=True, add_sl_noise=self.params['add_sl_noise'])
+                        self.agent.add_to_replay_buffer(path, from_model=True, add_sl_noise=self.params['add_sl_noise'])
                     # train the SAC agent
                     self.train_sac_agent()
 
@@ -234,7 +234,7 @@ class RL_Trainer(object):
         # 2) train the SAC agent self.agent.train_sac
         # HINT: This will look similar to train_agent above.
         all_logs = []
-        for train_step in range(self.params['num_agent_train_steps_per_iter']):
+        for train_step in range(self.sac_params['num_agent_train_steps_per_iter']):
             ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = self.agent.sample_sac(self.params['train_batch_size'])
 
             train_log = self.agent.train_sac(ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch)
